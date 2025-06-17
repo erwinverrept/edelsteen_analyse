@@ -1,0 +1,138 @@
+import os
+from flask import Flask, render_template, request, redirect, url_for, send_from_directory
+from werkzeug.utils import secure_filename
+from google.cloud import vision
+from PIL import Image
+from PIL.ExifTags import TAGS
+import io
+
+
+# Initialiseer de Flask-applicatie
+app = Flask(__name__)
+
+# Configureer een map om uploads op te slaan
+UPLOAD_FOLDER = 'uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+# Zorg ervoor dat de 'uploads' map bestaat
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+# Initialiseer de Google Vision client
+vision_client = vision.ImageAnnotatorClient()
+
+# --- De functie analyseer_afbeelding blijft ongewijzigd ---
+def analyseer_afbeelding(image_path):
+    """
+    Analyseert een afbeelding met Google Vision API voor kleuren en een webbeschrijving.
+    """
+    try:
+        with io.open(image_path, 'rb') as image_file:
+            content = image_file.read()
+
+        image = vision.Image(content=content)
+        features = [
+            {'type_': vision.Feature.Type.IMAGE_PROPERTIES},
+            {'type_': vision.Feature.Type.WEB_DETECTION},
+        ]
+        request = vision.AnnotateImageRequest(image=image, features=features)
+        response = vision_client.annotate_image(request=request)
+
+        props = response.image_properties_annotation
+        kleuren_data = []
+        for color_info in props.dominant_colors.colors:
+            percentage = round(color_info.pixel_fraction * 100, 2)
+            r = int(color_info.color.red)
+            g = int(color_info.color.green)
+            b = int(color_info.color.blue)
+            kleuren_data.append({'rgb': f'rgb({r}, {g}, {b})', 'percentage': percentage})
+
+        web_detection = response.web_detection
+        beschrijving = "Geen beschrijving gevonden."
+        if web_detection.best_guess_labels:
+            beschrijving = web_detection.best_guess_labels[0].label.capitalize()
+        elif web_detection.web_entities:
+            for entity in web_detection.web_entities:
+                if entity.description:
+                    beschrijving = entity.description.capitalize()
+                    break
+
+        return kleuren_data, beschrijving, None
+    except Exception as e:
+        print(f"Fout tijdens API-aanroep: {e}")
+        return None, None, str(e)
+def get_exif_data(image_path):
+    """
+    Haalt EXIF-informatie op uit een afbeelding.
+    """
+    try:
+        image = Image.open(image_path)
+        exif = {}
+        
+        if hasattr(image, '_getexif') and image._getexif():
+            for tag_id, value in image._getexif().items():
+                tag = TAGS.get(tag_id, tag_id)
+                # Filter alleen relevante EXIF-tags
+                if tag in ['DateTimeOriginal', 'Make', 'Model', 'ExposureTime', 
+                          'FNumber', 'ISOSpeedRatings', 'FocalLength']:
+                    if tag == 'ExposureTime':
+                        # Converteer belichtingstijd naar leesbaar formaat
+                        value = f"1/{int(1/float(value))} sec" if value < 1 else f"{value} sec"
+                    elif tag == 'FNumber':
+                        value = f"f/{value}"
+                    elif tag == 'FocalLength':
+                        value = f"{value}mm"
+                    exif[tag] = value
+        
+        return exif
+    except Exception as e:
+        print(f"Fout bij het lezen van EXIF data: {e}")
+        return {}
+
+@app.route('/', methods=['GET', 'POST'])
+def index():
+    """
+    Verwerkt de hoofdpagina: toont het uploadformulier en handelt de upload af.
+    """
+    if request.method == 'POST':
+        if 'file' not in request.files:
+            return redirect(request.url)
+        
+        file = request.files['file']
+        
+        if file.filename == '':
+            return redirect(request.url)
+            
+        if file:
+            # Gebruik secure_filename om de bestandsnaam te beveiligen
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            
+            # Analyseer de afbeelding
+            kleuren, beschrijving, error = analyseer_afbeelding(filepath)
+            
+            # Haal EXIF data op
+            exif_data = get_exif_data(filepath)
+            # BELANGRIJK: We verwijderen de afbeelding hier NIET MEER.
+            # os.remove(filepath) # <-- DEZE REGEL IS VERWIJDERD/IN COMMENTAAR GEZET
+
+            if error:
+                return render_template('index.html', error=error)
+
+            # Geef de bestandsnaam door aan de resultaatpagina
+            return render_template('resultaat.html', kleuren=kleuren, beschrijving=beschrijving, image_name=filename)
+            
+    return render_template('index.html')
+
+
+# --- NIEUWE ROUTE OM AFBEELDINGEN TE TONEN ---
+@app.route('/uploads/<filename>')
+def uploaded_file(filename):
+    """
+    Deze functie levert de opgeslagen afbeelding aan de browser.
+    """
+    return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', port=5000, debug=True)

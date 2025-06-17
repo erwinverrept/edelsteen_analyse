@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analyse Resultaat</title>
+    <style>
+        body { font-family: sans-serif; background-color: #f4f4f9; color: #333; max-width: 800px; margin: 40px auto; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); }
+        h1, h2 { color: #5a4b81; }
+        h1 { text-align: center; }
+        .result-container { display: flex; flex-direction: column; gap: 30px; }
+        .section { background-color: #fff; padding: 20px; border-radius: 8px; }
+        .color-list { list-style: none; padding: 0; }
+        .color-item { display: flex; align-items: center; margin-bottom: 10px; }
+        .color-swatch { width: 40px; height: 40px; border-radius: 5px; margin-right: 15px; border: 1px solid #ddd; }
+        .color-info { font-size: 16px; }
+        /* Stijl voor de afbeelding */
+        .uploaded-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto;
+        }
+        a { display: block; text-align: center; margin-top: 30px; text-decoration: none; background-color: #5a4b81; color: white; padding: 12px 25px; border-radius: 5px; transition: background-color 0.3s; width: 100%; box-sizing: border-box; }
+        a:hover { background-color: #43356e; }
+    </style>
+</head>
+<body>
+    <h1>Analyse van: {{ image_name }}</h1>
+
+    <div class="result-container">
+        <div class="section">
+            <h2>Geüploade Afbeelding</h2>
+            <img src="{{ url_for('uploaded_file', filename=image_name) }}" alt="Geüploade edelsteen" class="uploaded-image">
+        </div>
+
+        <div class="section">
+            <h2>Beschrijving</h2>
+            <p>{{ beschrijving }}</p>
+        </div>
+        <!-- Voeg deze nieuwe sectie toe binnen de result-container div -->
+<div class="section">
+    <h2>Camera Informatie</h2>
+    {% if exif_data %}
+        <div class="exif-info">
+            {% if exif_data.get('Make') %}
+            <span class="exif-label">Camera merk:</span>
+            <span class="exif-value">{{ exif_data.Make }}</span>
+            {% endif %}
+
+            {% if exif_data.get('Model') %}
+            <span class="exif-label">Camera model:</span>
+            <span class="exif-value">{{ exif_data.Model }}</span>
+            {% endif %}
+
+            {% if exif_data.get('DateTimeOriginal') %}
+            <span class="exif-label">Opnamedatum:</span>
+            <span class="exif-value">{{ exif_data.DateTimeOriginal }}</span>
+            {% endif %}
+
+            {% if exif_data.get('ExposureTime') %}
+            <span class="exif-label">Sluitertijd:</span>
+            <span class="exif-value">{{ exif_data.ExposureTime }}</span>
+            {% endif %}
+
+            {% if exif_data.get('FNumber') %}
+            <span class="exif-label">Diafragma:</span>
+            <span class="exif-value">{{ exif_data.FNumber }}</span>
+            {% endif %}
+
+            {% if exif_data.get('ISOSpeedRatings') %}
+            <span class="exif-label">ISO:</span>
+            <span class="exif-value">{{ exif_data.ISOSpeedRatings }}</span>
+            {% endif %}
+
+            {% if exif_data.get('FocalLength') %}
+            <span class="exif-label">Brandpuntsafstand:</span>
+            <span class="exif-value">{{ exif_data.FocalLength }}</span>
+            {% endif %}
+        </div>
+    {% else %}
+        <p>Geen EXIF informatie beschikbaar voor deze afbeelding.</p>
+    {% endif %}
+</div>
+        <div class="section">
+            <h2>Dominante Kleuren</h2>
+            <ul class="color-list">
+                {% for kleur in kleuren %}
+                <li class="color-item">
+                    {% if kleur and kleur['rgb'] and kleur['rgb'][0] is defined and kleur['rgb'][1] is defined and kleur['rgb'][2] is defined %}
+                    <span style="display: inline-block; width: 20px; height: 20px; background-color: '{{ kleur.html_code }}'; border: 1px solid #ccc;"></span>
+                    {% else %}
+                    <div class="color-swatch" style="background-color: #FFFFFF;"></div>
+                    {% endif %}
+                    <div class="color-info">{{ kleur.percentage }}%</div>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <a href="/">Analyseer een andere afbeelding</a>
+
+</body>
+</html>
