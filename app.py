@@ -4,6 +4,7 @@ from werkzeug.utils import secure_filename
 from google.cloud import vision
 from PIL import Image
 from PIL.ExifTags import TAGS
+from HSL import rgb_to_hsl
 import io
 
 
@@ -44,7 +45,14 @@ def analyseer_afbeelding(image_path):
             r = int(color_info.color.red)
             g = int(color_info.color.green)
             b = int(color_info.color.blue)
-            kleuren_data.append({'rgb': f'rgb({r}, {g}, {b})', 'percentage': percentage,'pixelFraction': color_info.pixel_fraction, 'score': color_info.score  })
+            hsl = rgb_to_hsl(r, g, b)  # <-- HSL berekenen
+            kleuren_data.append({
+                'rgb': f'rgb({r}, {g}, {b})',
+                'hsl': hsl,  # <-- toevoegen aan dict
+                'percentage': percentage,
+                'pixelFraction': color_info.pixel_fraction,
+                'score': color_info.score
+            })
 
         web_detection = response.web_detection
         beschrijving = "Geen beschrijving gevonden."

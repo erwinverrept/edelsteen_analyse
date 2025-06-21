@@ -92,6 +92,7 @@
                         <th style="text-align:left; padding: 8px; border-bottom: 2px solid #ddd;">Percentage</th>
                         <th style="text-align:left; padding: 8px; border-bottom: 2px solid #ddd;">PixelFraction</th>
                         <th style="text-align:left; padding: 8px; border-bottom: 2px solid #ddd;">Score</th>
+                        <th style="text-align:left; padding: 8px; border-bottom: 2px solid #ddd;">Hue/Sat/Lumin</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -103,6 +104,7 @@
                         <td style="padding: 8px;">{{ kleur.percentage }}%</td>
                         <td style="padding: 8px;">{{ kleur.pixelFraction }}</td>
                         <td style="padding: 8px;">{{ kleur.score }}</td>
+                        <td style="padding: 8px;">{{ kleur.hsl }}</td>
                     </tr>
                     {% endfor %}
                 </tbody>
