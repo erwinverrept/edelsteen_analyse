@@ -89,7 +89,7 @@
                 {% for kleur in kleuren %}
                 <li class="color-item">
                     {% if kleur and kleur['rgb'] and kleur['rgb'][0] is defined and kleur['rgb'][1] is defined and kleur['rgb'][2] is defined %}
-                    <span style="display: inline-block; width: 20px; height: 20px; background-color: '{{ kleur.html_code }}'; border: 1px solid #ccc;"></span>
+                    <span style="display: inline-block; width: 20px; height: 20px; background-color: {{ kleur.rgb }}; border: 1px solid #ccc;"></span>
                     {% else %}
                     <div class="color-swatch" style="background-color: #FFFFFF;"></div>
                     {% endif %}
