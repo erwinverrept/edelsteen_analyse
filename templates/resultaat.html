@@ -40,10 +40,10 @@
             <p>{{ beschrijving }}</p>
         </div>
         <!-- Voeg deze nieuwe sectie toe binnen de result-container div -->
-<div class="section">
-    <h2>Camera Informatie</h2>
-    {% if exif_data %}
-        <div class="exif-info">
+        <div class="section">
+            <h2>Camera Informatie</h2>
+        {% if exif_data %}
+            <div class="exif-info">
             {% if exif_data.get('Make') %}
             <span class="exif-label">Camera merk:</span>
             <span class="exif-value">{{ exif_data.Make }}</span>
@@ -79,24 +79,34 @@
             <span class="exif-value">{{ exif_data.FocalLength }}</span>
             {% endif %}
         </div>
-    {% else %}
+        {% else %}
         <p>Geen EXIF informatie beschikbaar voor deze afbeelding.</p>
-    {% endif %}
+         {% endif %}
 </div>
         <div class="section">
             <h2>Dominante Kleuren</h2>
-            <ul class="color-list">
-                {% for kleur in kleuren %}
-                <li class="color-item">
-                    {% if kleur and kleur['rgb'] and kleur['rgb'][0] is defined and kleur['rgb'][1] is defined and kleur['rgb'][2] is defined %}
-                    <span style="display: inline-block; width: 20px; height: 20px; background-color: {{ kleur.rgb }}; border: 1px solid #ccc;"></span>
-                    {% else %}
-                    <div class="color-swatch" style="background-color: #FFFFFF;"></div>
-                    {% endif %}
-                    <div class="color-info">{{ kleur.percentage }}%</div>
-                </li>
-                {% endfor %}
-            </ul>
+            <table style="width:100%; border-collapse: collapse;">
+                <thead>
+                    <tr>
+                        <th style="text-align:left; padding: 8px; border-bottom: 2px solid #ddd;">Kleur</th>
+                        <th style="text-align:left; padding: 8px; border-bottom: 2px solid #ddd;">Percentage</th>
+                        <th style="text-align:left; padding: 8px; border-bottom: 2px solid #ddd;">PixelFraction</th>
+                        <th style="text-align:left; padding: 8px; border-bottom: 2px solid #ddd;">Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for kleur in kleuren %}
+                    <tr>
+                        <td style="padding: 8px;">
+                            <span style="display: inline-block; width: 30px; height: 30px; background-color: {{ kleur.rgb }}; border: 1px solid #ccc; border-radius: 4px;"></span>
+                        </td>
+                        <td style="padding: 8px;">{{ kleur.percentage }}%</td>
+                        <td style="padding: 8px;">{{ kleur.pixelFraction }}</td>
+                        <td style="padding: 8px;">{{ kleur.score }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 

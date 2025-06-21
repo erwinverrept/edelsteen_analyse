@@ -44,7 +44,7 @@ def analyseer_afbeelding(image_path):
             r = int(color_info.color.red)
             g = int(color_info.color.green)
             b = int(color_info.color.blue)
-            kleuren_data.append({'rgb': f'rgb({r}, {g}, {b})', 'percentage': percentage})
+            kleuren_data.append({'rgb': f'rgb({r}, {g}, {b})', 'percentage': percentage,'pixelFraction': color_info.pixel_fraction, 'score': color_info.score  })
 
         web_detection = response.web_detection
         beschrijving = "Geen beschrijving gevonden."
@@ -120,7 +120,7 @@ def index():
                 return render_template('index.html', error=error)
 
             # Geef de bestandsnaam door aan de resultaatpagina
-            return render_template('resultaat.html', kleuren=kleuren, beschrijving=beschrijving, image_name=filename)
+            return render_template('resultaat.html', kleuren=kleuren, beschrijving=beschrijving, image_name=filename, exif_data=exif_data)
             
     return render_template('index.html')
 
