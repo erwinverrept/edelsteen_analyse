@@ -25,5 +25,5 @@ def rgb_to_hsl(r, g, b):
     h = int(round(h * 360))
     s = int(round(s * 100))
     l = int(round(l * 100))
-    H_percentage = int(round((h / 360) * 100))
-    return f"({H_percentage}, {s}%, {l}%)"
+    #H_percentage = int(round((h / 360) * 100))
+    return f"({h}, {s}%, {l}%)"
