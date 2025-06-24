@@ -349,6 +349,15 @@
                 markerDiv.textContent = index + 1; // Nummering
                 markerDiv.title = `H: ${hue}° S: ${saturation}% L: ${lightness}%`; // Tooltip
 
+                // Dubbelklik: zet geselecteerde kleur in het veld
+                markerDiv.ondblclick = function() {
+                    hueSlider.value = hue;
+                    updateColorDisplay(hue);
+                    hslOutputSpan.textContent = `H: ${hue}°, S: ${saturation}%, L: ${lightness}%`;
+                    rgbOutputSpan.textContent = `R: ${r}, G: ${g}, B: ${b}`;
+                    resultColorBox.style.backgroundColor = `rgb(${r}, ${g}, ${b})`;
+                };
+
                 // Voeg toe aan de container van het kleurenwiel
                 canvas.parentElement.appendChild(markerDiv);
             }
