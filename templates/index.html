@@ -33,9 +33,28 @@
         <button type="submit">Analyseer</button>
     </form>
 
+    <div id="preview-container" style="display:none; margin: 30px auto 0 auto; max-width: 350px; border: 2px solid #5a4b81; border-radius: 8px; background: #fff; padding: 16px; text-align: center;">
+        <img id="preview-image" src="#" alt="Voorbeeld afbeelding" style="max-width: 100%; max-height: 300px; border-radius: 6px;" />
+    </div>
+
     <script>
         document.getElementById('file').onchange = function () {
-            document.getElementById('file-name').textContent = this.files[0].name;
+            var fileInput = this;
+            var fileNameSpan = document.getElementById('file-name');
+            var previewContainer = document.getElementById('preview-container');
+            var previewImage = document.getElementById('preview-image');
+            if (fileInput.files && fileInput.files[0]) {
+                fileNameSpan.textContent = fileInput.files[0].name;
+                var reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                    previewContainer.style.display = 'block';
+                };
+                reader.readAsDataURL(fileInput.files[0]);
+            } else {
+                fileNameSpan.textContent = '';
+                previewContainer.style.display = 'none';
+            }
         };
     </script>
 </body>

@@ -6,13 +6,14 @@ from PIL import Image
 from PIL.ExifTags import TAGS
 from HSL import rgb_to_hsl
 import io
+from output_to_csv import output_to_csv
 
 
 # Initialiseer de Flask-applicatie
 app = Flask(__name__)
 
 # Configureer een map om uploads op te slaan
-UPLOAD_FOLDER = 'uploads'
+UPLOAD_FOLDER = '/home/pi/edelsteen_analyse/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 # Zorg ervoor dat de 'uploads' map bestaat
@@ -141,6 +142,38 @@ def uploaded_file(filename):
     """
     return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
+@app.route('/export', methods=['GET', 'POST'])
+def export_csv():
+    """
+    Toont een formulier om een bestandsnaam te kiezen en exporteert de analyse naar CSV.
+    """
+    # Gebruik de laatst geanalyseerde afbeelding uit de sessie of een globale variabele
+    # (voor demo: neem gewoon de laatste upload uit de uploads-map)
+    image_exts = ('.jpg', '.jpeg', '.png', '.bmp', '.gif', '.tiff')
+    uploads = [f for f in os.listdir(app.config['UPLOAD_FOLDER']) if f.lower().endswith(image_exts)]
+    if not uploads:
+        return redirect(url_for('index'))
+    latest_file = max([os.path.join(app.config['UPLOAD_FOLDER'], f) for f in uploads], key=os.path.getctime)
+    kleuren, beschrijving, _ = analyseer_afbeelding(latest_file)
+    exif_data = get_exif_data(latest_file)
+
+    if request.method == 'POST':
+        filename = request.form.get('filename', '').strip()
+        if not filename:
+            return render_template('output.html', error='Geef een bestandsnaam op!')
+        if not filename.endswith('.csv'):
+            filename += '.csv'
+        output_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        output_to_csv(exif_data, kleuren, output_path)
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename, as_attachment=True)
+    return render_template('output.html')
+
+@app.route('/kleurwiel')
+def kleurwiel():
+    """
+    Toont het interactieve HSL kleurwiel.
+    """
+    return render_template('kleurwiel.html')
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
